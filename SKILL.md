@@ -1,6 +1,6 @@
 ---
 name: html-artifact
-description: Primarily for non-Claude Code environments. Create or revise standalone HTML explainers, reports, comparisons, and case reviews, saving and opening the HTML locally by default, with temporary hosting only when explicitly requested. In Claude Code, prefer its built-in artifact capability when available; use this skill only as a fallback or when explicitly requested. Not for production websites, apps, or ordinary short chat answers.
+description: Create or revise standalone HTML explainers, reports, comparisons, and case reviews, saving and opening the HTML locally by default, with temporary hosting only when explicitly requested. Works in any agent that can read this file and run shell commands (Codex, Kimi Code CLI, Claude Code, etc.). In Claude Code, prefer its official built-in artifact capability when available; use this skill there only as a fallback or when explicitly requested. In other environments without a suitable built-in artifact workflow, this skill is the default path. Not for production websites, apps, or ordinary short chat answers.
 ---
 
 # HTML artifact
@@ -9,9 +9,10 @@ Turn the requested content into a page worth reading. Use deliberate typography,
 
 ## Environment and trigger priority
 
-- This skill primarily handles artifact requests in non-Claude Code environments, such as Codex.
-- In Claude Code, use an available built-in artifact capability first. Do not invoke this skill's file-generation or anonymous-upload workflow merely because the user says “artifact”. Use this skill there only when the built-in capability is unavailable or does not meet the requested delivery needs, or the user explicitly chooses this skill's workflow.
-- Determine availability from the current environment's exposed capabilities; do not assume every Claude Code installation has the same tools. When the built-in path is selected, its delivery workflow takes precedence and this skill's local-file delivery steps do not apply.
+- This skill is agent-agnostic: it runs anywhere the agent can execute shell commands and return a file path.
+- In Claude Code, prefer its official built-in artifact capability when available. Do not invoke this skill's file-generation or anonymous-upload workflow merely because the user says “artifact”. Use this skill there only when the built-in capability is unavailable or does not meet the requested delivery needs, or the user explicitly chooses this skill's workflow.
+- In other environments (Codex, Kimi Code CLI, and similar), this skill is the default artifact path: use it directly for artifact requests, since these environments have no official built-in artifact capability. If a future version of such an environment gains one, prefer that built-in path under the same rule as Claude Code.
+- Determine availability from the current environment's exposed capabilities; do not assume every installation of any agent has the same tools. When the built-in path is selected, its delivery workflow takes precedence and this skill's local-file delivery steps do not apply.
 
 ## Authoring
 
@@ -33,7 +34,7 @@ Distinguish direct evidence, inferred causes, and proposed behavior. An assistan
 
 ## Save, inspect, deliver
 
-- Honor an explicit output location. Otherwise create `~/.codex/artifacts/<topic>-<unique-suffix>/index.html`, expanding the path on the current machine. Choose a new directory for a new artifact; do not overwrite unrelated work. Keep the same path when revising an artifact in this thread.
+- Honor an explicit output location. Otherwise create `<artifact-dir>/<topic>-<unique-suffix>/index.html`, expanding the path on the current machine. The artifact directory precedence is: `$HTML_ARTIFACT_DIR` if set; `~/.codex/artifacts` when running under Codex (`$CODEX_HOME` present or `~/.codex` exists); otherwise `~/.agents/artifacts`. Choose a new directory for a new artifact; do not overwrite unrelated work. Keep the same path when revising an artifact in this thread.
 - Check the finished file once for incomplete placeholders, broken anchors, overflow-prone layouts, missing sources, missing noindex metadata, and external dependencies. Use a browser check when a new or materially changed layout or script needs it. Do not impose a screenshot suite or repeated polish loop on routine documents; report only checks actually performed.
 - Default to local delivery: return an absolute file link and open the completed file with the operating system's default application after the first generation. On macOS use `open "/absolute/path/to/index.html"`; on Linux use `xdg-open "/absolute/path/to/index.html"`; on Windows use PowerShell `Invoke-Item -LiteralPath 'C:\absolute\path\index.html'`. Pass the path as a safely quoted argument, not executable text. Honor an explicit “do not open” or “only generate the file” instruction.
 - For revisions of an already opened file, keep the same path and tell the user to refresh the existing page rather than opening duplicate tabs. Open again if the user requests it. If the system opener is unavailable or fails, retain the file, report the limitation, and return its absolute path; never upload as a fallback. A successful open command is not visual verification.

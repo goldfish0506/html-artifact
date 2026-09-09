@@ -34,7 +34,7 @@ request() {
   local args=(-q -sS --proto '=https' --connect-timeout 10 --max-time 30
     --request "$method" --output "$work/response.json" --write-out '%{http_code}'
     --header 'User-Agent: html-artifact/3' --config "$work/request.config")
-  if [[ "$url" == https://here.now/* ]]; then args+=(--header 'X-HereNow-Client: codex/html-artifact'); fi
+  if [[ "$url" == https://here.now/* ]]; then args+=(--header 'X-HereNow-Client: html-artifact'); fi
   if [[ -n "$body" ]]; then args+=(--header "Content-Type: $type" --data-binary "@$body"); fi
   status=$(curl "${args[@]}") || fail 'Network request failed; no new deployment was retried'
   if [[ "$status" == 429 ]]; then fail 'HTTP 429: rate limit reached; stop and wait before retrying. Response retained privately.'; fi
@@ -73,7 +73,15 @@ else
     jq -n --arg source "$input" --arg hash "$digest" --argjson bytes "$bytes" '{source:$source,uploaded_path:"/index.html",bytes:$bytes,sha256:$hash,network_requests:0,provider:"here.now"}'
     exit 0
   fi
-  root=${HTML_ARTIFACT_STATE_DIR:-"$HOME/.codex/artifacts/.here-now"}
+  if [[ -n "${HTML_ARTIFACT_STATE_DIR:-}" ]]; then
+    root=$HTML_ARTIFACT_STATE_DIR
+  elif [[ -n "${HTML_ARTIFACT_DIR:-}" ]]; then
+    root=$HTML_ARTIFACT_DIR/.here-now
+  elif [[ -d "$HOME/.codex/artifacts" ]]; then
+    root=$HOME/.codex/artifacts/.here-now
+  else
+    root=$HOME/.agents/artifacts/.here-now
+  fi
   mkdir -p "$root"
   work=$(mktemp -d "$root/site-XXXXXXXX")
   receipt="$work/receipt.json"
