@@ -18,23 +18,23 @@ Lightweight does not mean visually plain. Pages can use deliberate typography, s
 
 **Nothing is uploaded unless you explicitly request online sharing.** Ordinary revisions edit the same local file and prompt you to refresh it. Say “do not open” or “only generate the file” to skip automatic opening. If opening fails or a desktop is unavailable, the agent returns the local file rather than uploading it as a workaround.
 
-The skill primarily serves Codex and other environments without a suitable built-in artifact workflow. In Claude Code, an available built-in artifact capability takes priority unless you explicitly request this skill. This project does not reproduce either product's native interface.
+The skill is agent-agnostic: it works in Codex, Kimi Code CLI, Claude Code, and any other agent that can read a skill file and run shell commands. In Claude Code, its official built-in artifact capability takes priority — use this skill there only as a fallback or when explicitly requested. In other environments it is the default artifact path. This project does not reproduce any product's native interface.
 
 ## Install
 
-For a new user-level installation, first check that the destination does not already exist:
+Clone the repository anywhere, then run the bundled installer, which detects supported agents and copies the skill into each one's user-level skills directory:
 
 ```bash
-git clone https://github.com/pawaca/html-artifact.git ~/.codex/skills/html-artifact
+git clone https://github.com/goldfish0506/html-artifact.git
+cd html-artifact
+bash scripts/install.sh           # auto-detect: codex / kimi / claude
+bash scripts/install.sh --list    # show detected agents and targets, change nothing
+bash scripts/install.sh --agent kimi   # install for one agent only
 ```
 
-With a custom `CODEX_HOME`, use its `skills/html-artifact` directory instead. Start a new Codex session after installation. Inspect local changes before updating an existing installation.
+Targets: Codex `${CODEX_HOME:-~/.codex}/skills/html-artifact`, Kimi Code CLI `~/.agents/skills/html-artifact`, Claude Code `~/.claude/skills/html-artifact`. Re-running overwrites the previous copy. Start a new agent session after installation.
 
-Alternatively, ask Codex:
-
-```text
-Use skill-installer to install https://github.com/pawaca/html-artifact
-```
+For a Codex-only installation you can still clone the skill directory directly (`git clone ... ~/.codex/skills/html-artifact`, or under a custom `CODEX_HOME`). Inspect local changes before updating an existing installation.
 
 ## Try it
 
@@ -79,7 +79,7 @@ Upload this completed page to here.now and give me a shareable web URL.
 - **Purposeful graphics and interaction.** Diagrams reveal mechanisms; controls help readers explore a meaningful change. Interaction is optional.
 - **Readable across contexts.** Consider narrow screens, theme contrast, keyboard focus, and print output. A successful file-open command alone is not visual verification.
 
-The default output location is `~/.codex/artifacts/<topic>-<unique-suffix>/index.html`; an explicit user location takes precedence. New artifacts get separate directories, while revisions keep the original path.
+The default output location is `<artifact-dir>/<topic>-<unique-suffix>/index.html`; an explicit user location takes precedence. The artifact directory is `$HTML_ARTIFACT_DIR` when set, `~/.codex/artifacts` under Codex, and `~/.agents/artifacts` everywhere else. New artifacts get separate directories, while revisions keep the original path.
 
 Use a normal chat answer for simple questions and a dedicated development workflow for production websites or full applications.
 
@@ -123,7 +123,7 @@ Success is JSON on stdout, including `url`, `expires_at`, `retention`, `receipt_
 
 ### Failures and private state
 
-Snapshots and receipts are stored in `~/.codex/artifacts/.here-now/`. Override this with `HTML_ARTIFACT_STATE_DIR`. Receipts contain claim tokens and signed upload URLs; do not share or commit them.
+Snapshots and receipts are stored in `<artifact-dir>/.here-now/` (existing `~/.codex/artifacts/.here-now` keeps being used when present). Override with `HTML_ARTIFACT_STATE_DIR`. Receipts contain claim tokens and signed upload URLs; do not share or commit them.
 
 - Keep the local HTML on failure. Resume the same deployment when valid IDs were saved.
 - If creation is ambiguous and no IDs were saved, investigate before another attempt.

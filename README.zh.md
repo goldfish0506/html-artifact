@@ -18,23 +18,23 @@ HTML Artifact 是一个 agent skill，用于生成独立的 HTML 报告、方案
 
 **只有明确要求在线分享时才会上传。** 普通修订直接修改同一个本地文件，提示刷新。说“不要打开”或“只生成文件”可跳过自动打开。打开失败或没有桌面环境时，agent 返回本地文件，不会以上传作为替代。
 
-本 skill 主要服务 Codex 等缺少适用内置 artifact 工作流的环境。在 Claude Code 中，优先使用可用的内置 artifact 能力，除非明确选择本 skill。本项目不复制这两个产品的原生界面。
+本 skill 是通用型的：可在 Codex、Kimi Code CLI、Claude Code 及任何能读取 skill 文件并执行 shell 命令的 agent 中使用。在 Claude Code 中，优先使用官方内置的 artifact 能力，仅在不可用或明确要求时使用本 skill；在其他环境中，本 skill 就是默认的 artifact 路径。本项目不复制任何产品的原生界面。
 
 ## 安装
 
-首次安装到用户目录时，先确认目标目录尚不存在：
+把仓库克隆到任意位置，然后运行自带的安装脚本；它会自动检测受支持的 agent，并把 skill 复制到各自的用户级 skills 目录：
 
 ```bash
-git clone https://github.com/pawaca/html-artifact.git ~/.codex/skills/html-artifact
+git clone https://github.com/goldfish0506/html-artifact.git
+cd html-artifact
+bash scripts/install.sh           # 自动检测：codex / kimi / claude
+bash scripts/install.sh --list    # 只显示检测到的 agent 和目标路径，不做改动
+bash scripts/install.sh --agent kimi   # 只安装到指定 agent
 ```
 
-如果设置了自定义 `CODEX_HOME`，使用其 `skills/html-artifact` 目录。安装后开启新的 Codex 会话。更新已有安装前，先检查本地修改。
+目标目录：Codex 为 `${CODEX_HOME:-~/.codex}/skills/html-artifact`，Kimi Code CLI 为 `~/.agents/skills/html-artifact`，Claude Code 为 `~/.claude/skills/html-artifact`。重复运行会覆盖旧副本。安装后开启新的 agent 会话。
 
-也可以让 Codex 安装：
-
-```text
-用 skill-installer 安装 https://github.com/pawaca/html-artifact
-```
+只给 Codex 安装时，仍可直接克隆 skill 目录（`git clone ... ~/.codex/skills/html-artifact`，或使用自定义 `CODEX_HOME`）。更新已有安装前，先检查本地修改。
 
 ## 试着这样用
 
@@ -79,7 +79,7 @@ git clone https://github.com/pawaca/html-artifact.git ~/.codex/skills/html-artif
 - **有目的的图形与交互。** 图解展示机制，控件帮助探索有意义的变化；交互并非必需。
 - **照顾不同阅读环境。** 考虑窄屏、主题对比度、键盘焦点和打印。系统打开命令成功不等于完成视觉验证。
 
-默认输出到 `~/.codex/artifacts/<topic>-<unique-suffix>/index.html`，用户指定位置时优先使用指定位置。新 artifact 使用独立目录，修订保留原路径。
+默认输出到 `<artifact-dir>/<topic>-<unique-suffix>/index.html`，用户指定位置时优先使用指定位置。artifact 目录优先级：`$HTML_ARTIFACT_DIR` 已设置时使用它；Codex 下为 `~/.codex/artifacts`；其他环境为 `~/.agents/artifacts`。新 artifact 使用独立目录，修订保留原路径。
 
 简单问题直接用聊天回答；生产网站和完整应用使用专门的开发工作流。
 
@@ -123,7 +123,7 @@ bash scripts/publish.sh --resume /absolute/path/to/receipt.json
 
 ### 失败与私密状态
 
-快照和恢复记录保存在 `~/.codex/artifacts/.here-now/`，可通过 `HTML_ARTIFACT_STATE_DIR` 修改。记录含认领 token 和签名上传地址，不要公开或提交。
+快照和恢复记录保存在 `<artifact-dir>/.here-now/`（已存在的 `~/.codex/artifacts/.here-now` 会继续使用），可通过 `HTML_ARTIFACT_STATE_DIR` 修改。记录含认领 token 和签名上传地址，不要公开或提交。
 
 - 失败时保留本地 HTML；保存了有效部署 ID 时，恢复同一次部署。
 - 创建结果不明确且未保存 ID 时，先调查再决定是否重试。
