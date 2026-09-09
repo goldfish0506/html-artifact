@@ -73,9 +73,9 @@ else
     jq -n --arg source "$input" --arg hash "$digest" --argjson bytes "$bytes" '{source:$source,uploaded_path:"/index.html",bytes:$bytes,sha256:$hash,network_requests:0,provider:"here.now"}'
     exit 0
   fi
-  if [[ -n "$HTML_ARTIFACT_STATE_DIR" ]]; then
+  if [[ -n "${HTML_ARTIFACT_STATE_DIR:-}" ]]; then
     root=$HTML_ARTIFACT_STATE_DIR
-  elif [[ -n "$HTML_ARTIFACT_DIR" ]]; then
+  elif [[ -n "${HTML_ARTIFACT_DIR:-}" ]]; then
     root=$HTML_ARTIFACT_DIR/.here-now
   elif [[ -d "$HOME/.codex/artifacts" ]]; then
     root=$HOME/.codex/artifacts/.here-now

@@ -66,6 +66,10 @@ while IFS= read -r agent; do
     printf '%-7s %s (%s)\n' "$agent" "$dest" "$state"
     continue
   fi
+  if [[ "$(cd "$SKILL_ROOT" && pwd -P)" == "$(mkdir -p "$dest" && cd "$dest" && pwd -P)" ]]; then
+    echo "skipped $agent -> $dest (source and target are the same directory)"
+    continue
+  fi
   mkdir -p "$dest"
   # Copy only what the skill needs at runtime; keep docs/tests repo-only.
   cp "$SKILL_ROOT/SKILL.md" "$dest/SKILL.md"
